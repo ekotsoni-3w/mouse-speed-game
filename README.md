@@ -108,6 +108,13 @@ This project helped practice:
 
 ---
 
-## 📄 License
+## Roadmap
+- [ ] Add levels
+- [ ] Add sound effects
+- [ ] Add leaderboard
 
-This project is open-source and free to use for educational purposes.
+---
+
+## License
+
+This project is open-source.
