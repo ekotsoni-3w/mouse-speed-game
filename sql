@@ -1,0 +1,9 @@
+CREATE DATABASE game_db;
+
+USE game_db;
+
+CREATE TABLE scores (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    score INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
