@@ -1,10 +1,25 @@
 <?php
 
+// Ασφαλής έναρξη session για τον έλεγχο συχνότητας υποβολών.
+session_start([
+    "use_strict_mode" => true,
+    "cookie_httponly" => true,
+    "cookie_samesite" => "Lax",
+    "cookie_secure" => isset($_SERVER["HTTPS"])
+        && $_SERVER["HTTPS"] !== "off"
+]);
+
 // Η απάντηση του endpoint θα είναι σε μορφή JSON.
 header("Content-Type: application/json; charset=UTF-8");
 
 // Μέγιστη αποδεκτή τιμή για προστασία από παράλογα δεδομένα.
 const MAX_SCORE = 100000;
+
+// Ελάχιστος χρόνος μεταξύ δύο επιτυχημένων υποβολών.
+const SCORE_SUBMISSION_COOLDOWN_SECONDS = 5;
+
+// Ανώτατος αριθμός scores που διατηρεί το demo.
+const MAX_STORED_SCORES = 10000;
 
 // Το endpoint δέχεται μόνο POST requests.
 if ($_SERVER["REQUEST_METHOD"] !== "POST")
@@ -14,6 +29,25 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST")
     echo json_encode([
         "success" => false,
         "message" => "Only POST requests are allowed."
+    ]);
+
+    exit;
+}
+
+// Περιορίζουμε τις συνεχόμενες υποβολές από το ίδιο session.
+$lastSubmissionTime = $_SESSION["last_score_submission_at"] ?? null;
+
+if (
+    $lastSubmissionTime !== null
+    && time() - $lastSubmissionTime < SCORE_SUBMISSION_COOLDOWN_SECONDS
+)
+{
+    http_response_code(429);
+    header("Retry-After: " . SCORE_SUBMISSION_COOLDOWN_SECONDS);
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Please wait before submitting another score."
     ]);
 
     exit;
@@ -82,6 +116,27 @@ try
     // Υποστήριξη όλων των χαρακτήρων Unicode.
     $connection->set_charset("utf8mb4");
 
+    // Προστασία της demo βάσης από απεριόριστη αύξηση.
+    $countResult = $connection->query(
+        "SELECT COUNT(*) AS total FROM scores"
+    );
+
+    $totalScores = (int) $countResult->fetch_assoc()["total"];
+    $countResult->free();
+
+    if ($totalScores >= MAX_STORED_SCORES)
+    {
+        http_response_code(503);
+
+        echo json_encode([
+            "success" => false,
+            "message" => "Score storage is temporarily unavailable."
+        ]);
+
+        $connection->close();
+        exit;
+    }
+
     // Το ερωτηματικό είναι placeholder για το score.
     $statement = $connection->prepare(
         "INSERT INTO scores (score) VALUES (?)"
@@ -92,6 +147,9 @@ try
 
     // Εκτέλεση του prepared statement.
     $statement->execute();
+
+    // Καταγράφουμε τον χρόνο της επιτυχημένης υποβολής.
+    $_SESSION["last_score_submission_at"] = time();
 
     // Το 201 σημαίνει ότι δημιουργήθηκε επιτυχώς νέα εγγραφή.
     http_response_code(201);
