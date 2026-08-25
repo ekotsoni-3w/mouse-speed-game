@@ -6,6 +6,10 @@ The project demonstrates frontend game logic, client-server communication, PHP i
 
 > The current scoring system counts mouse movement events rather than measuring physical cursor velocity.
 
+## Live Demo
+
+🎮 [Play the Emoji Mouse Speed Game](https://ekotsoni3w.alwaysdata.net)
+
 ## Features
 
 - Countdown timer
