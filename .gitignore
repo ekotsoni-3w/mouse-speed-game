@@ -1,1 +1,4 @@
 .DS_Store
+
+# Local database credentials
+/config.php

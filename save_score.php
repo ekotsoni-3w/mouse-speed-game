@@ -44,6 +44,27 @@ if ($score === false || $score === null)
     exit;
 }
 
+// Διαδρομή προς το τοπικό αρχείο ρυθμίσεων.
+$configPath = __DIR__ . "/config.php";
+
+// Το configuration δεν αποθηκεύεται στο Git και πρέπει να δημιουργηθεί τοπικά.
+if (!is_file($configPath))
+{
+    error_log("Database configuration file not found.");
+
+    http_response_code(500);
+
+    echo json_encode([
+        "success" => false,
+        "message" => "The score could not be saved."
+    ]);
+
+    exit;
+}
+
+// Φόρτωση των στοιχείων σύνδεσης.
+$config = require $configPath;
+
 // Μετατρέπουμε τα σφάλματα της MySQL σε exceptions.
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
@@ -51,10 +72,11 @@ try
 {
     // Δημιουργία σύνδεσης με MySQL
     $connection = new mysqli(
-        "127.0.0.1",
-        "root",
-        "",
-        "game_db"
+        $config["host"],
+        $config["username"],
+        $config["password"],
+        $config["database"],
+        $config["port"]
     );
 
     // Υποστήριξη όλων των χαρακτήρων Unicode.
