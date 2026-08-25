@@ -68,19 +68,29 @@ cd mouse-speed-game
 
 ### 2. Create the database
 
-Make sure MariaDB/MySQL is running, then import:
+Create the local database:
 
 ```bash
-mysql -u root < database.sql
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS game_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
-When using XAMPP on macOS, the command may be:
+Import the schema:
 
 ```bash
-/Applications/XAMPP/xamppfiles/bin/mysql -u root < database.sql
+mysql -u root game_db < database.sql
 ```
 
-The script creates the `game_db` database and the `scores` table.
+When using XAMPP on macOS:
+
+```bash
+/Applications/XAMPP/xamppfiles/bin/mysql -u root -e "CREATE DATABASE IF NOT EXISTS game_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+```bash
+/Applications/XAMPP/xamppfiles/bin/mysql -u root game_db < database.sql
+```
+
+The schema does not contain a fixed database name, so it can also be imported into a database created by a hosting provider.
 
 ### 3. Create a restricted database user
 
@@ -153,6 +163,8 @@ Possible responses include:
 - `405 Method Not Allowed` — request was not sent with `POST`
 - `422 Unprocessable Content` — score is missing or invalid
 - `500 Internal Server Error` — configuration or database failure
+- `429 Too Many Requests` — another score was submitted too soon from the same session
+- `503 Service Unavailable` — the demo has reached its score storage limit
 
 Database errors are written to the server logs and are not exposed in the API response.
 
@@ -164,6 +176,8 @@ Database errors are written to the server logs and are not exposed in the API re
 - Local credentials excluded from Git
 - Generic client-facing database errors
 - Unicode-compatible database connection
+- Session-based submission cooldown
+- Maximum stored-score limit for the public demo
 
 ## Roadmap
 
