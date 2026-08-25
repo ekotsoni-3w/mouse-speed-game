@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8"> <!-- Υποστήριξη ελληνικών χαρακτήρων -->
     <title>Emoji Mouse Game</title> <!-- Τίτλος καρτέλας -->
-    <link rel="stylesheet" href="style.css?v=1"> <!-- Σύνδεση CSS -->
+    <link rel="stylesheet" href="style.css?v=2"> <!-- Σύνδεση CSS -->
 </head>
 
 <body>
